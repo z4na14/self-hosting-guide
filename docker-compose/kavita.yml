@@ -1,0 +1,14 @@
+services:
+    kavita:
+        image: jvmilazz0/kavita:latest    # Using the stable branch from the official dockerhub repo.
+        container_name: kavita
+        volumes:
+            #- Here just begin adding the paths to your books:/internal path
+            - ./config:/kavita/config     # /kavita/config must not be changed
+        environment:
+            - TZ='Europe/Madrid'
+            - DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
+        ports:
+            - "5000:5000"
+        restart: unless-stopped
+
