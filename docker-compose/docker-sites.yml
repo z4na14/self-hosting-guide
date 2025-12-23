@@ -1,0 +1,24 @@
+services:
+  # Uptime monitoring
+  uptime-kuma:
+    image: louislam/uptime-kuma:2
+    restart: unless-stopped
+    volumes:
+      - ./uptime_kuma_data:/app/data
+    ports:
+      # <Host Port>:<Container Port>
+      - "3001:3001"
+
+  forgejo:
+    image: codeberg.org/forgejo/forgejo:13
+    container_name: forgejo
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+    restart: always
+    volumes:
+      - ./forgejo_data:/data
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - '3000:3000'
+      - '222:22'

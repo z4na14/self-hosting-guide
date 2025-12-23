@@ -1,0 +1,28 @@
+services:
+  # NOTIFICATION TRIGGER FOR DOCKER UPDATES
+  diun:
+    image: crazymax/diun:latest
+    command: serve
+    volumes:
+      - "./diun_data:/data"
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    environment:
+      - "TZ=${TZ}"
+      - "DIUN_WATCH_WORKERS=20"
+      - "DIUN_WATCH_SCHEDULE=0 */6 * * *"
+      - "DIUN_WATCH_JITTER=30s"
+      - "DIUN_PROVIDERS_DOCKER=true"
+    labels:
+      - "diun.enable=true"
+    restart: always
+  
+  # DOCKER MANAGER
+  portainer:
+    image: portainer/portainer-ce:lts
+    container_name: portainer
+    ports:
+      - 9443:9443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./portainer_data:/data
+    restart: unless-stopped

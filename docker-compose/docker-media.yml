@@ -1,0 +1,99 @@
+services:
+  # MEDIA VIEWER
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    network_mode: 'host'
+    volumes:
+      - ./jellyfin_config:/config
+      - ./jellyfin_cache:/cache
+      - type: bind
+        source: ${MEDIA_DRIVE}
+        target: /media
+    restart: 'unless-stopped'
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    
+  # MOVIE TORRENTS
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - ./radarr_data:/config
+      - ${MEDIA_DRIVE}/${MOVIES_FOLDER}:/movies
+      - ${MEDIA_DRIVE}/${DOWNLOADS_FOLDER}:/downloads
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+
+  # SERIES TORRENTS
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - ./sonarr_data:/config
+      - ${MEDIA_DRIVE}/${SERIES_FOLDER}:/tv
+      - ${MEDIA_DRIVE}/${DOWNLOADS_FOLDER}:/downloads
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+
+  # *ARR INDEX MANAGER
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+    volumes:
+      - ./prowlarr_data:/config
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+
+  # *ARR JELLYFIN MANAGER
+  jellyseerr:
+    image: ghcr.io/fallenbagel/jellyseerr:latest
+    init: true
+    container_name: jellyseerr
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=${TZ}
+      - PORT=5055
+    ports:
+      - 5055:5055
+    volumes:
+      - ./seerr_data:/app/config
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1
+      start_period: 20s
+      timeout: 3s
+      interval: 15s
+      retries: 3
+    restart: unless-stopped
+
+  # BOOKS
+  calibre-web:
+    image: lscr.io/linuxserver/calibre-web:latest
+    container_name: calibre-web
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=${TZ}
+      - DOCKER_MODS=linuxserver/mods:universal-calibre #optional
+      - OAUTHLIB_RELAX_TOKEN_SCOPE=1 #optional
+    volumes:
+      - ./calibre_web_data:/config
+      - ${MEDIA_DRIVE}/${BOOKS_FOLDER}:/books
+    ports:
+      - 8083:8083
+    restart: unless-stopped
