@@ -114,6 +114,20 @@ Which just copies over SSH the key.
 
 Your pair of keys must be stored in `~/.ssh`, so don't forget to move them there if you didn't do it already.
 
+Finally, after checking that the certificate login works, we need to disable the password login from the config by `nano /etc/ssh/sshd_config` and changing the following fields:
+
+```
+ChallengeResponseAuthentication no
+PasswordAuthentication no
+UsePAM no
+```
+
+If commented, uncomment and change if necessary. Then, restart the service:
+
+```
+systemctl restart ssh
+```
+
 &nbsp;
 
 &nbsp;

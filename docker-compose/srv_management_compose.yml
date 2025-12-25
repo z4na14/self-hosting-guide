@@ -1,26 +1,15 @@
 services:
   # DNS Ad-Block
-  pihole:
+  pihole:    
     container_name: pihole
     image: pihole/pihole:latest
-    ports:
-      # DNS Ports
-      - "53:53/tcp"
-      - "53:53/udp"
-      # HTTP Port
-      - "7000:80/tcp"
-      # Default HTTPs Port. FTL will generate a self-signed certificate
-      #- "443:443/tcp"
-      # Uncomment the below if using Pi-hole as your DHCP Server
-      - "67:67/udp"
-      # Uncomment the line below if you are using Pi-hole as your NTP server
-      #- "123:123/udp"
+    network_mode: host
     environment:
       # Set the appropriate timezone for your location from
       # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones, e.g:
       TZ: ${TZ}
       # Set a password to access the web interface. Not setting one will result in a random password being assigned
-      FTLCONF_webserver_api_password: '${PWD}'
+      FTLCONF_webserver_api_password: '${DOCKERS_PWD}'
       # If using Docker's default `bridge` network setting the dns listening mode should be set to 'ALL'
       FTLCONF_dns_listeningMode: 'ALL'
     # Volumes store your data between container upgrades
@@ -44,7 +33,7 @@ services:
     environment:
     #  Optional:
     #  - PORT=51821
-    #  - HOST=0.0.0.0
+    #  - HOST="z4na14.dev"
       - INSECURE=true
 
     image: ghcr.io/wg-easy/wg-easy:15
@@ -70,6 +59,44 @@ services:
       - net.ipv6.conf.all.disable_ipv6=0
       - net.ipv6.conf.all.forwarding=1
       - net.ipv6.conf.default.forwarding=1
+
+  # Reverse proxy
+  nginx_rv:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: 'nginx_rv'
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./nginx_data:/data
+      - ./nginx_letsencrypt_data:/etc/letsencrypt
+
+  # Notification service
+  ntfy:
+    image: binwiederhier/ntfy
+    container_name: ntfy
+    command:
+      - serve
+    environment:
+      - TZ=${TZ}
+    user: 1000:1000
+    volumes:
+      - ./ntfy_cache:/var/cache/ntfy
+      - ./ntfy_data:/etc/ntfy
+    ports:
+      - 7950:80
+    healthcheck: # optional: remember to adapt the host:port to your environment
+        test: ["CMD-SHELL", "wget -q --tries=1 http://localhost:7950/v1/health -O - | grep -Eo '\"healthy\"\\s*:\\s*true' || exit 1"]
+        interval: 60s
+        timeout: 10s
+        retries: 3
+        start_period: 40s
+    restart: unless-stopped
+    init: true # needed, if healthcheck is used. Prevents zombie processes
 
   # Homepage
   homarr:

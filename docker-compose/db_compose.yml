@@ -1,0 +1,16 @@
+services:
+  database:
+    image: "postgres:latest"
+    container_name: database
+    ports:
+      - 5432:5432
+    volumes:
+      - ./db-data:/var/lib/postgresql
+    environment:
+      - POSTGRES_PASSWORD=${DOCKERS_PWD}
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 9000:8080
