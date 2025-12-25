@@ -151,15 +151,12 @@ auto lo
 iface lo inet loopback
 
 # The primary network interface
-# This is an autoconfigured IPv4 interface
-allow-hotplug enp4s0
-iface enp4s0 inet dhcp
-fallback static
-iface enp4s0 inet static
-        address 192.168.1.15 # HERE YOUR STATIC IP
-        netmask 255.255.255.0
-        gateway 192.168.1.1 # ROUTER IP
-        dns-nameservers 1.1.1.1 8.8.8.8 # FALLBACK DNS SERVERS
+auto enp6s0
+iface enp6s0 inet static
+    address 192.168.1.15
+    netmask 255.255.255.0
+    gateway 192.168.1.1
+    dns-nameservers 1.1.1.1 8.8.8.8
 ```
 
 Now, whenever the server is restarted, the same IP will be assigned to it.
