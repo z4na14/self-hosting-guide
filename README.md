@@ -7,6 +7,7 @@
         1. Differences between the RAID types
         2. Setting up RAID array
     3. Static IP
+    4. SMB/Samba
 3. Docker
     1. Installation
         1. Docker CE
@@ -156,7 +157,7 @@ iface enp6s0 inet static
     address 192.168.1.15
     netmask 255.255.255.0
     gateway 192.168.1.1
-    dns-nameservers 1.1.1.1 8.8.8.8
+    dns-nameservers 127.0.0.1 1.1.1.1
 ```
 
 Now, whenever the server is restarted, the same IP will be assigned to it.
@@ -268,6 +269,57 @@ After saving the file, the array will persist for reboots or updates.
 
 &nbsp;
 
+&nbsp;
+
+## SMB/Samba
+
+Now say that you want to access that same RAID drive that you just created from the File Explorer of your computer. Well, thats where the Samba protocol comes into play, as it will allow to define folders as drives, that can be mounted as Network Storage, and accessible without any other app.
+
+First and foremost, install the `samba` and `smbclient` packages:
+
+```bash
+sudo apt install samba smbclient
+```
+
+Then edit the `/etc/samba/smb.conf` configuration file [accordingly](https://wiki.debian.org/Samba/ServerSimple). I will use the following to mount two drives in `/mnt/shared` and `/mnt/media` where I store everything:
+
+```
+[Media]
+    comment = Media Library
+    path = /mnt/media
+    valid users = @smbusers
+    read only = no
+    browsable = yes
+    create mask = 0664
+    directory mask = 0775
+
+[Shared]
+    comment = Private Shared Files
+    path = /mnt/shared
+    valid users = @smbusers
+    read only = no
+    browsable = yes
+    create mask = 0664
+    directory mask = 0775
+```
+
+To avoid writing each user individually, we can create a new group and add them all in it:
+
+```
+sudo groupadd smbusers
+sudo usermod -aG smbusers YourUser
+```
+
+And use the UNIX wildcard `@` to refer to all those users.
+
+Finally, change the SMB password of each user that will be using the service. It is **not** the same as the UNIX one:
+
+```
+sudo smbpasswd -a user1
+```
+
+&nbsp;
+
 # 3. Docker
 
 All the docker compose files that I use (at least most of them) will be available in the GitHub repo.
@@ -283,3 +335,29 @@ All the docker compose files that I use (at least most of them) will be availabl
 &nbsp;
 
 ## Basics of Docker
+
+## Final touches
+
+When using Pi-hole as your DNS resolver, it also comes with some drawbacks. When dealing with certain systems or programs, some name resolutions can fail (AAAA vs A, gravity updating, differences between subnets, etc.). Thats why, for all docker containers we are going to bypass Pi-hole and use Google's or Cloudflare's DNS by editing `/etc/docker/daemon.json`:
+
+```
+{
+  "dns": ["1.1.1.1", "8.8.8.8"]
+}
+```
+
+And restarting docker:
+
+```
+sudo systemctl restart docker
+```
+
+These services won't have any ads to block, and most people use it for the local resolver to assign local addresses (which can be assigned inside the docker subnet).
+
+But don't worry. If you need Pi-hole for any other service that requries adblocking, just add the following to the compose:
+
+```
+dns:
+	- 1.1.1.1
+	- 8.8.8.8
+```

@@ -6,11 +6,12 @@ sudo ufw --force reset
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
 
-echo "Allowing SSH and Web traffic"
+echo "Allowing SSH, SMB and Web traffic"
 sudo ufw allow 22/tcp          # SSH
 sudo ufw allow 80/tcp          # HTTP (NPM / Certbot)
 sudo ufw allow 443/tcp         # HTTPS (Web traffic)
 sudo ufw allow 81/tcp          # Nginx Proxy Manager UI
+sudo ufw allow samba           # SMB protocol
 
 echo "Configuring Pi-hole Ports (DNS & DHCP)"
 sudo ufw allow 53/tcp          # DNS
