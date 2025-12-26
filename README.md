@@ -10,9 +10,8 @@
     4. SMB/Samba
 3. Docker
     1. Installation
-        1. Docker CE
-        2. Portainer
     2. Basics of Docker
+    3. Final touches
 
 &nbsp;
 
@@ -320,6 +319,12 @@ sudo smbpasswd -a user1
 
 &nbsp;
 
+&nbsp;
+
+## UFW
+
+&nbsp;
+
 # 3. Docker
 
 All the docker compose files that I use (at least most of them) will be available in the GitHub repo.
@@ -335,6 +340,28 @@ All the docker compose files that I use (at least most of them) will be availabl
 &nbsp;
 
 ## Basics of Docker
+
+### Docker secrets
+
+Say now, I uploaded my docker compose files, and they came with my private keys and passwords in it, I would be f***** right? As I would have just leaked everything that protects my network. Well, by using environment variables I avoid that.
+
+Im sure most of you reading this have seen memes of developers uploading `.env` files to the version control repo or something. Well, that file is used to place all passwords and keys needed for deployment or development, usually distributed via protected channels, and to be ignored from any versioning, and included during pipelines to use it's contents.
+
+That is what im using to mainstream all this data accross all my compose files, and actually is supported natively by Docker. If you want the file to be picked up automatically, you can just place the `.env` file in the same directory, and when doing `docker compose up -d` it will include all the variables, but, if you are like me, and have multiple folders, each one for a compose file, then you need to specifiy where this file is.
+
+I got an alias for this command as I have the same setup for all the compose files in my setup:
+
+```
+alias dup='docker compose --env-file ../.env up -d'
+```
+
+Which just takes the file from the top directory.
+
+To use those variables, just place the name between brackets like `${VAR}` and it will be replace automatically.
+
+&nbsp;
+
+&nbsp;
 
 ## Final touches
 
