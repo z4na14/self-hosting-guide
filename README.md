@@ -1,3 +1,6 @@
+# Repo has migrated to https://git.z4na14.dev/z4na14/self-hosting-guide
+###### fuck you microsoft
+
 # Index
 
 1. Introduction
